@@ -2,3 +2,10 @@ from qiskit import QuantumCircuit, transpile
 from qiskit_aer import Aer
 from qiskit.quantum_info import Statevector, Operator, DensityMatrix
 import numpy as np
+
+
+qc = QuantumCircuit(1)
+qc.rz(np.pi/2, 0)
+qc.h(0)
+
+qc.draw('mpl')
