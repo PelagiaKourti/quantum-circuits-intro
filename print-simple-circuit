@@ -17,3 +17,9 @@ initial = Statevector([1,0])
 final = initial.evolve(op)
 
 print(final)
+
+
+state = Statevector.from_instruction(qc)
+rho = DensityMatrix(state)
+
+print(rho)
