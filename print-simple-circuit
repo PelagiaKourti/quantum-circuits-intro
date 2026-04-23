@@ -9,3 +9,11 @@ qc.rz(np.pi/2, 0)
 qc.h(0)
 
 qc.draw('mpl')
+
+
+op = Operator(qc)
+
+initial = Statevector([1,0])
+final = initial.evolve(op)
+
+print(final)
