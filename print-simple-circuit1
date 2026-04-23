@@ -1,0 +1,123 @@
+#import QuantumCircuit class
+from qiskit import QuantumCircuit, transpile
+from qiskit_aer import Aer
+from qiskit.quantum_info import Statevector, Operator, DensityMatrix
+import numpy as np
+
+
+
+#create a circuit with 1 qubit
+qc = QuantumCircuit(1)
+
+#add a rotation Rz(\pi /2)   (of \pi / 2 around the z-axis of the Bloch sphere )
+qc.rz(np.pi/2, 0)
+
+#add Hadamard gate
+qc.h(0)
+
+#print the circuit
+qc.draw('mpl')
+
+
+# backend (simulator)
+backend = Aer.get_backend('statevector_simulator')
+
+# compile circuit
+compiled = transpile(qc, backend)
+
+# run
+result = backend.run(compiled).result()
+
+
+#print operator
+op = Operator(qc)
+print(op)
+
+
+initial = Statevector([1,0])   # |0>
+final = initial.evolve(op)
+print(final)
+
+
+state = Statevector.from_instruction(qc)
+
+#compute density matrix
+rho = DensityMatrix(state)
+print(rho)                #only real values
+#prints the density matrix of the statevector, that is, real values on each place
+
+
+#Εquivalence checking in circuits
+#Circuit equivalence example 1 (ZX-inspired) - S1 rule - spider fusion:
+#Rz(pi/4) followed by Rz(pi/4) equals Rz(pi/2)
+# --Rz(pi/4)--Rz(pi/4)-- = --Rz(pi/2)--
+qc1 = QuantumCircuit(1)
+qc1.rz(np.pi/4, 0)
+qc1.rz(np.pi/4, 0)
+
+qc2 = QuantumCircuit(1)
+qc2.rz(np.pi/2, 0)
+
+Operator(qc1).equiv(Operator(qc2))
+
+#Circuit equivalence example 2 - test C-rule-Hadamard:
+# --H--Z--H-- = --X--
+qc1 = QuantumCircuit(1)
+qc1.h(0)
+qc1.z(0)
+qc1.h(0)
+
+qc2 = QuantumCircuit(1)
+qc2.x(0)
+
+Operator(qc1).equiv(Operator(qc2))
+
+# --H--Rz(θ)--H-- = --Rx(θ)-- for θ = \pi/3
+qc1 = QuantumCircuit(1)
+qc1.h(0)
+qc1.rz(np.pi/3, 0)
+qc1.h(0)
+
+qc2 = QuantumCircuit(1)
+qc2.rx(np.pi/3, 0)
+
+Operator(qc1).equiv(Operator(qc2))
+
+#chech the C-rule for random θ
+def test_equivalence(n_tests=10):
+    for _ in range(n_tests):
+        theta = np.random.uniform(0, 2*np.pi)
+
+        qc1 = QuantumCircuit(1)
+        qc1.h(0)
+        qc1.rz(theta, 0)
+        qc1.h(0)
+
+        qc2 = QuantumCircuit(1)
+        qc2.rx(theta, 0)
+
+        if not Operator(qc1).equiv(Operator(qc2)):
+            return False
+
+    return True
+
+print(test_equivalence(20))
+
+#Circuit equivalence example 3:
+qc1 = QuantumCircuit(1)
+qc1.h(0)
+qc1.rz(np.pi/3, 0)
+qc1.h(0)
+qc1.rz(np.pi/4, 0)
+qc1.h(0)
+qc1.rz(np.pi/5, 0)
+qc1.h(0)
+
+qc2 = QuantumCircuit(1)
+qc2.rx(np.pi/3, 0)
+qc2.rz(np.pi/4, 0)
+qc2.rx(np.pi/5, 0)
+
+print(Operator(qc1).equiv(Operator(qc2)))
+qc1.draw('mpl')
+qc2.draw('mpl')
